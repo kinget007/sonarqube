@@ -21,7 +21,6 @@ package org.sonar.server.user.ws;
 
 import com.google.common.collect.ImmutableSet;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.sonar.api.utils.text.JsonWriter;
@@ -36,8 +35,9 @@ public class UserWriter {
   private static final String FIELD_EMAIL = "email";
   private static final String FIELD_SCM_ACCOUNTS = "scmAccounts";
   private static final String FIELD_GROUPS = "groups";
+  private static final String FIELD_ACTIVE = "active";
 
-  public static final Set<String> FIELDS = ImmutableSet.of(FIELD_NAME, FIELD_EMAIL, FIELD_SCM_ACCOUNTS, FIELD_GROUPS);
+  public static final Set<String> FIELDS = ImmutableSet.of(FIELD_NAME, FIELD_EMAIL, FIELD_SCM_ACCOUNTS, FIELD_GROUPS, FIELD_ACTIVE);
 
   private final UserSession userSession;
 
@@ -45,23 +45,30 @@ public class UserWriter {
     this.userSession = userSession;
   }
 
-  public void writeFull(JsonWriter json, UserDoc user, Collection<String> groups, @Nullable List<String> fields) {
+  public void writeFull(JsonWriter json, UserDoc user, Collection<String> groups, @Nullable Collection<String> fields) {
     json.beginObject();
     json.prop(FIELD_LOGIN, user.login());
     writeIfNeeded(json, user.name(), FIELD_NAME, fields);
     writeIfNeeded(json, user.email(), FIELD_EMAIL, fields);
+    writeIfNeeded(json, user.active(), FIELD_ACTIVE, fields);
     writeGroupsIfNeeded(json, groups, fields);
     writeScmAccountsIfNeeded(json, fields, user);
     json.endObject();
   }
 
-  private void writeIfNeeded(JsonWriter json, @Nullable String value, String field, @Nullable List<String> fields) {
+  private void writeIfNeeded(JsonWriter json, @Nullable String value, String field, @Nullable Collection<String> fields) {
     if (fieldIsWanted(field, fields)) {
       json.prop(field, value);
     }
   }
 
-  private void writeGroupsIfNeeded(JsonWriter json, Collection<String> groups, @Nullable List<String> fields) {
+  private void writeIfNeeded(JsonWriter json, @Nullable Boolean value, String field, @Nullable Collection<String> fields) {
+    if (fieldIsWanted(field, fields)) {
+      json.prop(field, value);
+    }
+  }
+
+  private void writeGroupsIfNeeded(JsonWriter json, Collection<String> groups, @Nullable Collection<String> fields) {
     if (fieldIsWanted(FIELD_GROUPS, fields) && userSession.hasGlobalPermission(GlobalPermissions.SYSTEM_ADMIN)) {
       json.name(FIELD_GROUPS).beginArray();
       for (String groupName : groups) {
@@ -71,7 +78,7 @@ public class UserWriter {
     }
   }
 
-  private void writeScmAccountsIfNeeded(JsonWriter json, List<String> fields, UserDoc user) {
+  private void writeScmAccountsIfNeeded(JsonWriter json, Collection<String> fields, UserDoc user) {
     if (fieldIsWanted(FIELD_SCM_ACCOUNTS, fields)) {
       json.name(FIELD_SCM_ACCOUNTS)
         .beginArray()
@@ -80,7 +87,7 @@ public class UserWriter {
     }
   }
 
-  private boolean fieldIsWanted(String field, @Nullable List<String> fields) {
+  private boolean fieldIsWanted(String field, @Nullable Collection<String> fields) {
     return fields == null || fields.isEmpty() || fields.contains(field);
   }
 }
