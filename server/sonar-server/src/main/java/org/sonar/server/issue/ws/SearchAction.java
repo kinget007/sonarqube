@@ -69,6 +69,7 @@ import org.sonar.server.issue.index.IssueIndex;
 import org.sonar.server.rule.Rule;
 import org.sonar.server.rule.RuleService;
 import org.sonar.server.user.UserSession;
+import org.sonar.server.user.ws.UserWriter;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
@@ -100,10 +101,11 @@ public class SearchAction implements IssuesWsAction {
   private final Durations durations;
   private final Languages languages;
   private final UserSession userSession;
+  private final UserWriter userWriter;
 
   public SearchAction(DbClient dbClient, IssueService service, IssueActionsWriter actionsWriter, IssueQueryService issueQueryService,
     RuleService ruleService, ActionPlanService actionPlanService, UserFinder userFinder, I18n i18n, Durations durations, Languages languages,
-    UserSession userSession) {
+    UserSession userSession, UserWriter userWriter) {
     this.dbClient = dbClient;
     this.service = service;
     this.actionsWriter = actionsWriter;
@@ -115,6 +117,7 @@ public class SearchAction implements IssuesWsAction {
     this.durations = durations;
     this.languages = languages;
     this.userSession = userSession;
+    this.userWriter = userWriter;
   }
 
   @Override
@@ -541,7 +544,6 @@ public class SearchAction implements IssuesWsAction {
         .prop("line", issue.line())
         .prop("debt", debt != null ? durations.encode(debt) : null)
         .prop("reporter", issue.reporter())
-        .prop("assignee", issue.assignee())
         .prop("author", issue.authorLogin())
         .prop("actionPlan", actionPlanKey)
         .prop("creationDate", isoDate(issue.creationDate()))
@@ -549,6 +551,9 @@ public class SearchAction implements IssuesWsAction {
         // TODO Remove as part of Front-end rework on Issue Domain
         .prop("fUpdateAge", formatAgeDate(updateDate))
         .prop("closeDate", isoDate(issue.closeDate()));
+
+      json.name("assignee");
+      userWriter.writeConcise(json, usersByLogin.get(issue.assignee()));
 
       writeTags(issue, json);
       writeIssueComments(commentsByIssues.get(issue.key()), usersByLogin, json);

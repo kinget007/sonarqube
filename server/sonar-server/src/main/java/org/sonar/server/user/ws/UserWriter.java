@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import java.util.Collection;
 import java.util.Set;
 import javax.annotation.Nullable;
+import org.sonar.api.user.User;
 import org.sonar.api.utils.text.JsonWriter;
 import org.sonar.core.permission.GlobalPermissions;
 import org.sonar.server.user.UserSession;
@@ -38,6 +39,7 @@ public class UserWriter {
   private static final String FIELD_ACTIVE = "active";
 
   public static final Set<String> FIELDS = ImmutableSet.of(FIELD_NAME, FIELD_EMAIL, FIELD_SCM_ACCOUNTS, FIELD_GROUPS, FIELD_ACTIVE);
+  private static final Set<String> CONCISE_FIELDS = ImmutableSet.of(FIELD_NAME, FIELD_EMAIL, FIELD_ACTIVE);
 
   private final UserSession userSession;
 
@@ -45,7 +47,7 @@ public class UserWriter {
     this.userSession = userSession;
   }
 
-  public void writeFull(JsonWriter json, UserDoc user, Collection<String> groups, @Nullable Collection<String> fields) {
+  public void writeFull(JsonWriter json, User user, Collection<String> groups, @Nullable Collection<String> fields) {
     json.beginObject();
     json.prop(FIELD_LOGIN, user.login());
     writeIfNeeded(json, user.name(), FIELD_NAME, fields);
@@ -54,6 +56,14 @@ public class UserWriter {
     writeGroupsIfNeeded(json, groups, fields);
     writeScmAccountsIfNeeded(json, fields, user);
     json.endObject();
+  }
+
+  public void writeConcise(JsonWriter json, @Nullable User user) {
+    if (user == null) {
+      json.beginObject().endObject();
+    } else {
+      writeFull(json, user, ImmutableSet.<String>of(), CONCISE_FIELDS);
+    }
   }
 
   private void writeIfNeeded(JsonWriter json, @Nullable String value, String field, @Nullable Collection<String> fields) {
@@ -78,11 +88,11 @@ public class UserWriter {
     }
   }
 
-  private void writeScmAccountsIfNeeded(JsonWriter json, Collection<String> fields, UserDoc user) {
+  private void writeScmAccountsIfNeeded(JsonWriter json, Collection<String> fields, User user) {
     if (fieldIsWanted(FIELD_SCM_ACCOUNTS, fields)) {
       json.name(FIELD_SCM_ACCOUNTS)
         .beginArray()
-        .values(user.scmAccounts())
+        .values(((UserDoc) user).scmAccounts())
         .endArray();
     }
   }
