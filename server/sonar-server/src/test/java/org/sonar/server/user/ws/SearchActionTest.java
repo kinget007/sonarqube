@@ -89,7 +89,7 @@ public class SearchActionTest {
     session = dbClient.openSession(false);
 
     index = new UserIndex(esTester.client());
-    tester = new WsTester(new UsersWs(new SearchAction(index, dbClient, new UserWriter(userSession))));
+    tester = new WsTester(new UsersWs(new SearchAction(index, dbClient, new UserJsonWriter(userSession))));
     controller = tester.controller("api/users");
   }
 

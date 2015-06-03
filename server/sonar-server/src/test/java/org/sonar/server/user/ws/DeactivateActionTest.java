@@ -96,7 +96,7 @@ public class DeactivateActionTest {
     index = new UserIndex(esTester.client());
     tester = new WsTester(new UsersWs(new DeactivateAction(index,
       new UserUpdater(mock(NewUserNotifier.class), settings, dbClient, userIndexer, system2, mock(SecurityRealmFactory.class)), userSessionRule,
-      new UserWriter(userSessionRule), dbClient)));
+      new UserJsonWriter(userSessionRule), dbClient)));
     controller = tester.controller("api/users");
 
   }

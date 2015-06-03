@@ -29,7 +29,7 @@ import org.sonar.core.permission.GlobalPermissions;
 import org.sonar.server.user.UserSession;
 import org.sonar.server.user.index.UserDoc;
 
-public class UserWriter {
+public class UserJsonWriter {
 
   private static final String FIELD_LOGIN = "login";
   private static final String FIELD_NAME = "name";
@@ -43,11 +43,14 @@ public class UserWriter {
 
   private final UserSession userSession;
 
-  public UserWriter(UserSession userSession) {
+  public UserJsonWriter(UserSession userSession) {
     this.userSession = userSession;
   }
 
-  public void writeFull(JsonWriter json, User user, Collection<String> groups, @Nullable Collection<String> fields) {
+  /**
+   * Serializes a user to the passed JsonWriter.
+   */
+  public void write(JsonWriter json, User user, Collection<String> groups, Collection<String> fields) {
     json.beginObject();
     json.prop(FIELD_LOGIN, user.login());
     writeIfNeeded(json, user.name(), FIELD_NAME, fields);
@@ -58,28 +61,31 @@ public class UserWriter {
     json.endObject();
   }
 
-  public void writeConcise(JsonWriter json, @Nullable User user) {
+  /**
+   * A shortcut to {@link #write(JsonWriter, User, Collection, Collection)} with preselected fields and without group information
+   */
+  public void write(JsonWriter json, @Nullable User user) {
     if (user == null) {
       json.beginObject().endObject();
     } else {
-      writeFull(json, user, ImmutableSet.<String>of(), CONCISE_FIELDS);
+      write(json, user, ImmutableSet.<String>of(), CONCISE_FIELDS);
     }
   }
 
-  private void writeIfNeeded(JsonWriter json, @Nullable String value, String field, @Nullable Collection<String> fields) {
-    if (fieldIsWanted(field, fields)) {
+  private static void writeIfNeeded(JsonWriter json, @Nullable String value, String field, Collection<String> fields) {
+    if (isFieldWanted(field, fields)) {
       json.prop(field, value);
     }
   }
 
-  private void writeIfNeeded(JsonWriter json, @Nullable Boolean value, String field, @Nullable Collection<String> fields) {
-    if (fieldIsWanted(field, fields)) {
+  private static void writeIfNeeded(JsonWriter json, @Nullable Boolean value, String field, Collection<String> fields) {
+    if (isFieldWanted(field, fields)) {
       json.prop(field, value);
     }
   }
 
   private void writeGroupsIfNeeded(JsonWriter json, Collection<String> groups, @Nullable Collection<String> fields) {
-    if (fieldIsWanted(FIELD_GROUPS, fields) && userSession.hasGlobalPermission(GlobalPermissions.SYSTEM_ADMIN)) {
+    if (isFieldWanted(FIELD_GROUPS, fields) && userSession.hasGlobalPermission(GlobalPermissions.SYSTEM_ADMIN)) {
       json.name(FIELD_GROUPS).beginArray();
       for (String groupName : groups) {
         json.value(groupName);
@@ -88,8 +94,8 @@ public class UserWriter {
     }
   }
 
-  private void writeScmAccountsIfNeeded(JsonWriter json, Collection<String> fields, User user) {
-    if (fieldIsWanted(FIELD_SCM_ACCOUNTS, fields)) {
+  private static void writeScmAccountsIfNeeded(JsonWriter json, Collection<String> fields, User user) {
+    if (isFieldWanted(FIELD_SCM_ACCOUNTS, fields)) {
       json.name(FIELD_SCM_ACCOUNTS)
         .beginArray()
         .values(((UserDoc) user).scmAccounts())
@@ -97,7 +103,7 @@ public class UserWriter {
     }
   }
 
-  private boolean fieldIsWanted(String field, @Nullable Collection<String> fields) {
+  private static boolean isFieldWanted(String field, @Nullable Collection<String> fields) {
     return fields == null || fields.isEmpty() || fields.contains(field);
   }
 }

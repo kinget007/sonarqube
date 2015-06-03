@@ -46,9 +46,9 @@ public class CreateAction implements UsersWsAction {
   private final UserUpdater userUpdater;
   private final I18n i18n;
   private final UserSession userSession;
-  private final UserWriter userWriter;
+  private final UserJsonWriter userWriter;
 
-  public CreateAction(UserIndex index, UserUpdater userUpdater, I18n i18n, UserSession userSession, UserWriter userWriter) {
+  public CreateAction(UserIndex index, UserUpdater userUpdater, I18n i18n, UserSession userSession, UserJsonWriter userWriter) {
     this.index = index;
     this.userUpdater = userUpdater;
     this.i18n = i18n;
@@ -120,7 +120,7 @@ public class CreateAction implements UsersWsAction {
 
   private void writeUser(JsonWriter json, UserDoc user) {
     json.name("user");
-    userWriter.writeFull(json, user, ImmutableSet.<String>of(), UserWriter.FIELDS);
+    userWriter.write(json, user, ImmutableSet.<String>of(), UserJsonWriter.FIELDS);
   }
 
   private void writeReactivationMessage(JsonWriter json, String login) {

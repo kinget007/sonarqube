@@ -48,10 +48,10 @@ public class UpdateAction implements UsersWsAction {
   private final UserIndex index;
   private final UserUpdater userUpdater;
   private final UserSession userSession;
-  private final UserWriter userWriter;
+  private final UserJsonWriter userWriter;
   private final DbClient dbClient;
 
-  public UpdateAction(UserIndex index, UserUpdater userUpdater, UserSession userSession, UserWriter userWriter, DbClient dbClient) {
+  public UpdateAction(UserIndex index, UserUpdater userUpdater, UserSession userSession, UserJsonWriter userWriter, DbClient dbClient) {
     this.index = index;
     this.userUpdater = userUpdater;
     this.userSession = userSession;
@@ -124,6 +124,6 @@ public class UpdateAction implements UsersWsAction {
     } finally {
       MyBatis.closeQuietly(dbSession);
     }
-    userWriter.writeFull(json, user, groups, UserWriter.FIELDS);
+    userWriter.write(json, user, groups, UserJsonWriter.FIELDS);
   }
 }

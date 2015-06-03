@@ -19,11 +19,14 @@
  */
 package org.sonar.server.issue.ws;
 
+import org.sonar.core.user.GroupDto;
+
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,8 +35,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.sonar.api.i18n.I18n;
 import org.sonar.api.issue.ActionPlan;
@@ -69,8 +74,7 @@ import org.sonar.server.issue.index.IssueIndex;
 import org.sonar.server.rule.Rule;
 import org.sonar.server.rule.RuleService;
 import org.sonar.server.user.UserSession;
-import org.sonar.server.user.ws.UserWriter;
-
+import org.sonar.server.user.ws.UserJsonWriter;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
@@ -101,11 +105,11 @@ public class SearchAction implements IssuesWsAction {
   private final Durations durations;
   private final Languages languages;
   private final UserSession userSession;
-  private final UserWriter userWriter;
+  private final UserJsonWriter userWriter;
 
   public SearchAction(DbClient dbClient, IssueService service, IssueActionsWriter actionsWriter, IssueQueryService issueQueryService,
     RuleService ruleService, ActionPlanService actionPlanService, UserFinder userFinder, I18n i18n, Durations durations, Languages languages,
-    UserSession userSession, UserWriter userWriter) {
+    UserSession userSession, UserJsonWriter userWriter) {
     this.dbClient = dbClient;
     this.service = service;
     this.actionsWriter = actionsWriter;
@@ -553,7 +557,7 @@ public class SearchAction implements IssuesWsAction {
         .prop("closeDate", isoDate(issue.closeDate()));
 
       json.name("assignee");
-      userWriter.writeConcise(json, usersByLogin.get(issue.assignee()));
+      userWriter.write(json, usersByLogin.get(issue.assignee()));
 
       writeTags(issue, json);
       writeIssueComments(commentsByIssues.get(issue.key()), usersByLogin, json);

@@ -19,7 +19,7 @@
  */
 package org.sonar.server.platform.platformlevel;
 
-import org.sonar.server.user.ws.UserWriter;
+import org.sonar.server.user.ws.UserJsonWriter;
 
 import java.util.List;
 import org.sonar.api.config.EmailSettings;
@@ -538,7 +538,7 @@ public class PlatformLevel4 extends PlatformLevel {
       NewUserNotifier.class,
       DefaultUserFinder.class,
       DefaultUserService.class,
-      UserWriter.class,
+      UserJsonWriter.class,
       UsersWs.class,
       org.sonar.server.user.ws.CreateAction.class,
       org.sonar.server.user.ws.UpdateAction.class,

@@ -45,9 +45,9 @@ public class SearchAction implements UsersWsAction {
 
   private final UserIndex userIndex;
   private final DbClient dbClient;
-  private final UserWriter userWriter;
+  private final UserJsonWriter userWriter;
 
-  public SearchAction(UserIndex userIndex, DbClient dbClient, UserWriter userWriter) {
+  public SearchAction(UserIndex userIndex, DbClient dbClient, UserJsonWriter userWriter) {
     this.userIndex = userIndex;
     this.dbClient = dbClient;
     this.userWriter = userWriter;
@@ -61,7 +61,7 @@ public class SearchAction implements UsersWsAction {
       .setHandler(this)
       .setResponseExample(getClass().getResource("example-search.json"));
 
-    action.addFieldsParam(UserWriter.FIELDS);
+    action.addFieldsParam(UserJsonWriter.FIELDS);
     action.addPagingParams(50);
 
     action.createParam(Param.TEXT_QUERY)
@@ -100,7 +100,7 @@ public class SearchAction implements UsersWsAction {
     json.name("users").beginArray();
     for (UserDoc user : result.getDocs()) {
       Collection<String> groups = groupsByLogin.get(user.login());
-      userWriter.writeFull(json, user, groups, fields);
+      userWriter.write(json, user, groups, fields);
     }
     json.endArray();
   }

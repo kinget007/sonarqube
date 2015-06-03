@@ -42,12 +42,12 @@ public class UsersWsTest {
   @Before
   public void setUp() {
     WsTester tester = new WsTester(new UsersWs(
-      new CreateAction(mock(UserIndex.class), mock(UserUpdater.class), mock(I18n.class), userSessionRule, mock(UserWriter.class)),
-      new UpdateAction(mock(UserIndex.class), mock(UserUpdater.class), userSessionRule, mock(UserWriter.class), mock(DbClient.class)),
+      new CreateAction(mock(UserIndex.class), mock(UserUpdater.class), mock(I18n.class), userSessionRule, mock(UserJsonWriter.class)),
+      new UpdateAction(mock(UserIndex.class), mock(UserUpdater.class), userSessionRule, mock(UserJsonWriter.class), mock(DbClient.class)),
       new CurrentAction(userSessionRule),
-      new DeactivateAction(mock(UserIndex.class), mock(UserUpdater.class), userSessionRule, mock(UserWriter.class), mock(DbClient.class)),
+      new DeactivateAction(mock(UserIndex.class), mock(UserUpdater.class), userSessionRule, mock(UserJsonWriter.class), mock(DbClient.class)),
       new ChangePasswordAction(mock(UserUpdater.class), userSessionRule),
-      new SearchAction(mock(UserIndex.class), mock(DbClient.class), mock(UserWriter.class))));
+      new SearchAction(mock(UserIndex.class), mock(DbClient.class), mock(UserJsonWriter.class))));
     controller = tester.controller("api/users");
   }
 
