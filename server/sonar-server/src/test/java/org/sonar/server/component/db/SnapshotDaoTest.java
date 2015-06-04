@@ -28,12 +28,16 @@ import org.junit.Test;
 import org.sonar.api.utils.DateUtils;
 import org.sonar.api.utils.System2;
 import org.sonar.core.component.SnapshotDto;
+import org.sonar.core.component.SnapshotQuery;
 import org.sonar.core.persistence.AbstractDaoTestCase;
 import org.sonar.core.persistence.DbSession;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.sonar.core.component.SnapshotQuery.SORT_FIELD.BY_DATE;
+import static org.sonar.core.component.SnapshotQuery.SORT_ORDER.ASC;
+import static org.sonar.core.component.SnapshotQuery.SORT_ORDER.DESC;
 
 public class SnapshotDaoTest extends AbstractDaoTestCase {
 
@@ -142,6 +146,43 @@ public class SnapshotDaoTest extends AbstractDaoTestCase {
     List<SnapshotDto> snapshots = sut.selectSnapshotsByComponentId(session, 1L);
 
     assertThat(snapshots).hasSize(3);
+  }
+
+  @Test
+  public void select_snapshots_by_query() {
+    setupData("select_snapshots_by_query");
+
+    assertThat(sut.selectSnapshotsByQuery(session, new SnapshotQuery())).hasSize(6);
+
+    assertThat(sut.selectSnapshotsByQuery(session, new SnapshotQuery().setComponentId(1L))).hasSize(3);
+
+    assertThat(sut.selectSnapshotsByQuery(session, new SnapshotQuery().setComponentId(1L).setVersion("2.2-SNAPSHOT"))).extracting("id").containsOnly(3L);
+
+    assertThat(sut.selectSnapshotsByQuery(session, new SnapshotQuery().setComponentId(1L).setIsLast(true))).extracting("id").containsOnly(1L);
+    assertThat(sut.selectSnapshotsByQuery(session, new SnapshotQuery().setComponentId(1L).setIsLast(false))).extracting("id").containsOnly(2L, 3L);
+
+    assertThat(sut.selectSnapshotsByQuery(session, new SnapshotQuery().setComponentId(1L).setCreatedAfter(1228172400002L))).extracting("id").containsOnly(2L, 3L);
+    assertThat(sut.selectSnapshotsByQuery(session, new SnapshotQuery().setComponentId(1L).setCreatedBefore(1228172400002L))).extracting("id").containsOnly(1L);
+
+    assertThat(sut.selectSnapshotsByQuery(session, new SnapshotQuery().setComponentId(2L).setStatus("P"))).hasSize(1);
+    assertThat(sut.selectSnapshotsByQuery(session, new SnapshotQuery().setComponentId(2L).setStatus("U"))).hasSize(1);
+
+    assertThat(sut.selectSnapshotsByQuery(session, new SnapshotQuery().setComponentId(1L).setSort(BY_DATE, ASC)).get(0).getId()).isEqualTo(1L);
+    assertThat(sut.selectSnapshotsByQuery(session, new SnapshotQuery().setComponentId(1L).setSort(BY_DATE, DESC)).get(0).getId()).isEqualTo(3L);
+  }
+
+  @Test
+  public void select_previous_version_snapshots() throws Exception {
+    setupData("select_previous_version_snapshots");
+
+    List<SnapshotDto> snapshots = sut.selectPreviousVersionSnapshots(session, 1L, "1.2-SNAPSHOT");
+    assertThat(snapshots).hasSize(2);
+
+    SnapshotDto firstSnapshot = snapshots.get(0);
+    assertThat(firstSnapshot.getVersion()).isEqualTo("1.1");
+
+    // All snapshots are returned on an unknown version
+    assertThat(sut.selectPreviousVersionSnapshots(session, 1L, "UNKNOWN")).hasSize(3);
   }
 
   @Test

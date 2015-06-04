@@ -19,6 +19,8 @@
  */
 package org.sonar.batch.components;
 
+import java.util.List;
+import javax.annotation.CheckForNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.batch.BatchSide;
@@ -26,10 +28,6 @@ import org.sonar.api.batch.RequiresDB;
 import org.sonar.api.database.DatabaseSession;
 import org.sonar.api.database.model.Snapshot;
 import org.sonar.batch.deprecated.components.PeriodsDefinition;
-
-import javax.annotation.CheckForNull;
-
-import java.util.List;
 
 import static com.google.common.collect.Lists.newLinkedList;
 import static org.sonar.api.utils.DateUtils.longToDate;
@@ -56,11 +54,11 @@ public class TimeMachineConfiguration {
     periods = newLinkedList();
     modulePastSnapshots = newLinkedList();
     for (PastSnapshot projectPastSnapshot : periodsDefinition.getRootProjectPastSnapshots()) {
-      Snapshot snapshot = findSnapshot(projectPastSnapshot.getProjectSnapshot());
-
       PastSnapshot pastSnapshot = projectPastSnapshot.clonePastSnapshot();
       modulePastSnapshots.add(pastSnapshot);
-      // When no snapshot is found, date of the period is null
+
+      Snapshot snapshot = findSnapshot(projectPastSnapshot.getProjectSnapshot());
+      // When no snapshot is found, date of the period is null -> for new module
       periods.add(new Period(pastSnapshot.getIndex(), snapshot != null ? longToDate(snapshot.getCreatedAtMs()) : null));
       LOG.info(pastSnapshot.toString());
     }

@@ -60,12 +60,12 @@ public final class TimeMachineConfigurationPersister implements Decorator {
   void persistConfiguration(Resource module) {
     List<PastSnapshot> pastSnapshots = timeMachineConfiguration.getProjectPastSnapshots();
     Snapshot projectSnapshot = resourceCache.get(module).snapshot();
+    Snapshot snapshot = session.reattach(Snapshot.class, projectSnapshot.getId());
     for (PastSnapshot pastSnapshot : pastSnapshots) {
-      Snapshot snapshot = session.reattach(Snapshot.class, projectSnapshot.getId());
       updatePeriodParams(snapshot, pastSnapshot);
       updatePeriodParams(projectSnapshot, pastSnapshot);
-      session.save(snapshot);
     }
+    session.save(snapshot);
     session.commit();
   }
 
