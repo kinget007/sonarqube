@@ -188,7 +188,7 @@ public class CreateAction implements MetricsWsAction {
 
   private void writeMetric(JsonWriter json, MetricDto metric) {
     json.beginObject();
-    json.prop(FIELD_ID, metric.getId());
+    json.prop(FIELD_ID, String.valueOf(metric.getId()));
     json.prop(FIELD_KEY, metric.getKey());
     json.prop(FIELD_NAME, metric.getShortName());
     json.prop(FIELD_TYPE, metric.getValueType());
