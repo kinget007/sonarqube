@@ -98,21 +98,6 @@ public class SnapshotDaoTest extends AbstractDaoTestCase {
   }
 
   @Test
-  public void insert() {
-    setupData("empty");
-
-    when(system2.now()).thenReturn(1403042400000L);
-
-    SnapshotDto dto = defaultSnapshot();
-
-    sut.insert(session, dto);
-    session.commit();
-
-    assertThat(dto.getId()).isNotNull();
-    checkTables("insert", "snapshots");
-  }
-
-  @Test
   public void lastSnapshot_returns_null_when_no_last_snapshot() {
     setupData("empty");
 
@@ -148,6 +133,30 @@ public class SnapshotDaoTest extends AbstractDaoTestCase {
 
     assertThat(snapshots).isNotEmpty();
     assertThat(snapshots).extracting("id").containsOnly(1L, 6L);
+  }
+
+  @Test
+  public void select_snapshots_by_component_id() {
+    setupData("snapshots");
+
+    List<SnapshotDto> snapshots = sut.selectSnapshotsByComponentId(session, 1L);
+
+    assertThat(snapshots).hasSize(3);
+  }
+
+  @Test
+  public void insert() {
+    setupData("empty");
+
+    when(system2.now()).thenReturn(1403042400000L);
+
+    SnapshotDto dto = defaultSnapshot();
+
+    sut.insert(session, dto);
+    session.commit();
+
+    assertThat(dto.getId()).isNotNull();
+    checkTables("insert", "snapshots");
   }
 
   @Test
